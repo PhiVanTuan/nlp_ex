@@ -22,5 +22,4 @@ print(extract_lemma(docs))
 # for doc in docs.sentences:
 #     token_string=doc.tokens_string()
 #     print(token_string)
-StanfordCoreNLP.nlp.ner
 
