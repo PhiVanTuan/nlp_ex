@@ -6,14 +6,15 @@ import json
 
 file=open("artist.json")
 db = plyvel.DB('testdb', create_if_missing=True)
+wb = db.write_batch()
 
 num=0
 for f in file:
     object=json.loads(f)
-    db.put(b'name',object["name"])
+    wb.put(b'name',object["name"])
     if num==0:
 
       kvs = KVS(object)
       # print(list(kvs.items()))
       break
-print(db.get("name"))
+print(db.get(b"name"))
