@@ -9,6 +9,7 @@ from nltk.stem import PorterStemmer
 from nltk.corpus import stopwords
 import numpy as np
 
+vocab=Counter()
 def readText(pathFile):
     file=open(pathFile)
     text=file.read()
@@ -68,6 +69,7 @@ def processText(data,vocab):
     vocab.update(data)
 def readFile():
     for f in os.listdir("neg"):
-       clean_doc("neg/"+f)
+       processText(clean_doc("neg/"+f),vocab)
 
 readFile()
+print(vocab.items())
