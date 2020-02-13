@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import GridSearchCV
 
 data_set=open("vocab.txt").read().splitlines()
@@ -35,14 +36,15 @@ def getWord(data_negative):
 data=open("test.txt").read().splitlines()
 
 tf_idf=tfidf_vector.fit_transform(data)
-array=tf_idf.toarray()
+print(tfidf_vector.get_feature_names())
+
 array_train=[]
 list=[]
 for i in data_negative.splitlines():
     array_train.append(0)
 for i in data_positive.splitlines():
     array_train.append(1)
-print(list.append(array_train))
+
 print(tf_idf.toarray())
 # X = count_vectorizer.fit_transform(data)
 # tfidf_vector
@@ -84,13 +86,17 @@ lr = grid.best_estimator_
 lr.fit(X_train, array_train)
 
 
-pos = ["I've seen this story before but my kids haven't. Boy with troubled past joins military, faces his past, falls in love and becomes a man. "
-       "The mentor this time is played perfectly by Kevin Costner; An ordinary man with common everyday problems who lives an extraordinary "
-       "conviction, to save lives. After losing his team he takes a teaching position training the next generation of heroes. The young troubled "
-       "recruit is played by Kutcher. While his scenes with the local love interest are a tad stiff and don't generate enough heat to melt butter, "
-       "he compliments Costner well. I never really understood Sela Ward as the neglected wife and felt she should of wanted Costner to quit out of "
-       "concern for his safety as opposed to her selfish needs. But her presence on screen is a pleasure. The two unaccredited stars of this movie "
-       "are the Coast Guard and the Sea. Both powerful forces which should not be taken for granted in real life or this movie. The movie has some "
-       "slow spots and could have used the wasted 15 minutes to strengthen the character relationships. But it still works. The rescue scenes are "
-       "intense and well filmed and edited to provide maximum impact. This movie earns the audience applause. And the applause of my two sons."]
+pos = ["OK, so the musical pieces were poorly written and generally poorly sung (though Walken and Marner, particularly Walken, sounded pretty good). And so they shattered the fourth wall at the end by having the king and his nobles sing about the "'battle'" with the ogre, and praise the efforts of Puss in Boots when they by rights shouldn't have even known about it.<br /><br />Who cares? It's Christopher Freakin' Walken, doing a movie based on a fairy tale, and he sings and dances. His acting style fits the role very well as the devious, mischievous Puss who seems to get his master into deeper and deeper trouble but in fact has a plan he's thought about seven or eight moves in advance. And if you've ever seen Walken in any of his villainous roles, you *know* the ogre bit the dust HARD at the end when Walken got him into his trap.<br /><br />A fun film, and a must-see for anyone who enjoys the unique style of Christopher Walken."]
 print("Pos prediction: {}". format(lr.predict(tfidf_vector.transform(pos))))
+terms = tfidf_vector.get_feature_names()
+
+# sum tfidf frequency of each term through documents
+sums = X_train.sum(axis=0)
+
+# connecting term to its sums frequency
+data = []
+for col, term in enumerate(terms):
+    data.append( (term, sums[0,col] ))
+
+ranking = pd.DataFrame(data, columns=['term','rank'])
+print(ranking.sort_values('rank', ascending=True))
