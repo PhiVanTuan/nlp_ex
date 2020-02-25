@@ -1,7 +1,9 @@
+from concurrent.futures import ThreadPoolExecutor
+
 import requests
 import json
 import os
-
+import threading
 url_category = 'https://tiki.vn/api/v2/products?limit=300&sort=position'
 url_product = 'https://tiki.vn/api/v2/reviews?limit=200&sort=score|desc,id|desc,stars|all&include=comments'
 url_all = "https://tiki.vn/api/v2/categories?parent_id=2&include_in_menu=true"
@@ -12,9 +14,11 @@ def loadAll():
     response = requests.get(url_all)
     str_json = response.json()
     data = str_json['data']
+    executor = ThreadPoolExecutor(max_workers=len(data))
     for item in data:
         category_id = item['id']
-        loadCategory(category_id, 1)
+        executor.map(loadCategory(category_id,1))
+
 
 
 def loadCategory(category_id, page):
@@ -33,8 +37,17 @@ def loadCategory(category_id, page):
             for item in data:
                 product_id = item['id']
                 url = "https://tiki.vn/" + item['url_path']
+                reviewData = {
+                    "productId": product_id,
+                    "url": url,
+                    "1": [],
+                    "2": [],
+                    "3": [],
+                    "4": [],
+                    "5": []
+                }
                 lstData = []
-                loadReview(category_id, product_id, 1, url, lstData)
+                loadReview(category_id,  1, reviewData)
             paging = str_json['paging']
             currentPage = paging['current_page']
             lastPage = paging['last_page']
@@ -43,7 +56,8 @@ def loadCategory(category_id, page):
         print("An exception occurred")
 
 
-def loadReview(category_id, product_id, page, url, lstData):
+def loadReview(category_id,  page, reviewData):
+    product_id=reviewData['productId']
     print("product_id : " + str(product_id))
     params_product = {}
     params_product['product_id'] = product_id
@@ -54,24 +68,31 @@ def loadReview(category_id, product_id, page, url, lstData):
         data = str_json['data']
         if (len(data) > 0):
             for item in data:
-                product = {}
-                product['product_id'] = product_id
-                product['content'] = item['content']
-                product['rating'] = item['rating']
-                product['url'] = url
-                lstData.append(product)
+                content=item['content']
+                rating=item['rating']
+                if rating==1:reviewData['1'].append(content)
+                elif rating==2:reviewData['2'].append(content)
+                elif rating==3:reviewData['3'].append(content)
+                elif rating==4:reviewData['4'].append(content)
+                elif rating==5:reviewData['5'].append(content)
+
             page = str_json['paging']
             currentPage = page['current_page']
             lastPage = page['last_page']
             if (currentPage < lastPage):
-                loadReview(category_id, product_id, currentPage + 1, url, lstData)
+                loadReview(category_id,  currentPage + 1, reviewData)
             else:
-                json_data = json.dumps(lstData)
+                # print(json.dumps(reviewData))
+                json_data = json.dumps(reviewData)
+                print(json_data)
                 file = open(path + str(category_id) + "/" + str(product_id) + ".txt", "w")
                 file.write(json_data)
                 file.close()
     except:
-        print("error: " + url)
+        print("error: " + reviewData['url'])
 
 
-loadCategory(1520, 1)
+
+
+
+loadAll()
