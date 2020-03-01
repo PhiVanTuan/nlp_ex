@@ -20,6 +20,7 @@ class SentimentRNN(nn.Module):
         # embedding
         # LSTM
         # fully_connected
+        print("vocab_size "+str(vocab_size))
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         self.lstm = nn.LSTM(embedding_dim, hidden_dim, n_layers,
                             dropout=drop_prob, batch_first=True)
@@ -31,9 +32,11 @@ class SentimentRNN(nn.Module):
         Perform a forward pass of our model on some input and hidden state.
         """
         batch_size = x.size(0)
-
-        x = x.long()
+        # print("hidden ")
+        # print(hidden)
         embeds = self.embedding(x)
+        # print(embeds)
+        # embeds = embeds.view(len(x), x.size(1), -1)
         lstm_out, hidden = self.lstm(embeds, hidden)
 
         # stack_up lstm outputs

@@ -66,6 +66,7 @@ def test():
     for pair in sorted_words:
         vocab_to_int.update({pair[0]: i})
         i += 1
+    # print(len(vocab_to_int))
     ## use the dict to tokenize each review in reviews_split
     ## store the tokenized reviews in reviews_ints
     reviews_ints = []
@@ -100,26 +101,29 @@ batch_size = 50
 def pre_data():
     split_frac = 0.8
     features = pad_features(test(), 200)
-    encoded_labels = open("label.txt").read().splitlines()
+    encoded_labels = [int(i) for i in open("label.txt").read().splitlines()]
+
     ## split data into training, validation, and test data (features and labels, x and y)
     train_x, remaining_x, train_y, remaining_y = train_test_split(features, encoded_labels, test_size=0.2)
     test_x, valid_x, test_y, valid_y = train_test_split(remaining_x, remaining_y, test_size=0.5)
-    train_data = TensorDataset(torch.LongTensor(train_x), torch.LongTensor(train_y))
+    # print(train_x)
+    train_data = TensorDataset(torch.as_tensor(np.array(train_x).astype('long')), torch.as_tensor(np.array(train_y).astype('long')))
     valid_data = TensorDataset(torch.LongTensor(valid_x), torch.LongTensor(valid_y))
     # dataloaders
     # make sure to SHUFFLE your data
-    train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size)
-    valid_loader = DataLoader(valid_data, shuffle=True, batch_size=batch_size)
+    train_loader = DataLoader(train_data, shuffle=True, batch_size=batch_size,drop_last=True)
+    valid_loader = DataLoader(valid_data, shuffle=True, batch_size=batch_size,drop_last=True)
     return train_loader, valid_loader
 
 
 vocab_size = len(vocab_to_int) + 1
+print("size "+str(vocab_size))
 output_size = 1
 embedding_dim = 200
 hidden_dim = 256
 n_layers = 2
 
-net = SentimentRNN(vocab_size, output_size, embedding_dim, hidden_dim, n_layers)
+net = SentimentRNN(37549, output_size, embedding_dim, hidden_dim, n_layers)
 train_on_gpu = torch.cuda.is_available()
 
 
@@ -158,7 +162,7 @@ def train():
 
             # zero accumulated gradients
             net.zero_grad()
-
+            # print(inputs)
             # get the output from the model
             output, h = net(inputs, h)
 
@@ -251,3 +255,4 @@ def predict(net, test_review, sequence_length=200):
 
 test_review = 'Hàng tốt giao hàng nhanh chong và đóng gói cẩn thận'
 predict(net, test_review)
+print(test_review)

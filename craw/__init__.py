@@ -96,3 +96,11 @@
 #
 #
 # loadAll()
+import torch
+from torch import nn
+
+embedding = nn.Embedding(25, 20, padding_idx=0)
+input = torch.LongTensor([0, 2, 0, 5,1,4,5])
+
+embbed=embedding(input)
+# print(embbed)
